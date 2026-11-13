@@ -7,23 +7,19 @@ organization_groups:
   - name: "AzDO Platform Admins"
     description: "Platform engineering administrators responsible for the AzDO IaC baseline engine and org-wide security policies."
     role_tier: "platform-admin"
-    entra_group_origin_id: "11111111-2222-3333-4444-555555555555"
     members: []
 
   - name: "AzDO Governance Maintainers"
     description: "Maintainers authorized to onboard projects, manage teams, and tune bounded configuration dials."
     role_tier: "maintainer"
-    entra_group_origin_id: "22222222-3333-4444-5555-666666666666"
     members: []
 
   - name: "AzDO Security Auditors"
     description: "Read-only security and compliance auditors across organization settings, audit logs, and project policies."
     role_tier: "auditor"
-    entra_group_origin_id: "33333333-4444-5555-6666-777777777777"
     members: []
 
   - name: "AzDO IaC Control Plane Automation"
     description: "Workload identity service principal group executing OpenTofu runs from the CI control plane."
     role_tier: "service-principal-automation"
-    entra_group_origin_id: "44444444-5555-6666-7777-888888888888"
     members: []

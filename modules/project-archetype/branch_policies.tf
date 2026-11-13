@@ -93,7 +93,7 @@ resource "azuredevops_branch_policy_merge_types" "default_branch" {
 
   settings {
     allow_squash                  = var.branch_policy_dials.allowed_merge_types.squash
-    allow_no_fast_forward         = var.branch_policy_dials.allowed_merge_types.no_fast_forward
+    allow_basic_no_fast_forward   = var.branch_policy_dials.allowed_merge_types.no_fast_forward
     allow_rebase_and_fast_forward = var.branch_policy_dials.allowed_merge_types.rebase
     allow_rebase_with_merge       = var.branch_policy_dials.allowed_merge_types.rebase_merge
 

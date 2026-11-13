@@ -213,6 +213,7 @@ fi
 
 # Static HCL Guardrail Inspection: Verify Tier 1 hardcoded invariants in modules/
 python3 - <<'PYEOF'
+import re
 import sys
 
 with open("modules/project-archetype/main.tf", "r", encoding="utf-8") as f:
@@ -225,11 +226,11 @@ with open("modules/org-settings-api-bridge/main.tf", "r", encoding="utf-8") as f
     bridge_main = f.read()
 
 checks = [
-    ('visibility         = "private"' in proj_main, "Tier 1 invariant: project visibility must remain hardcoded to 'private' in modules/project-archetype/main.tf"),
-    ('submitter_can_vote                     = false' in branch_pol, "Tier 1 invariant: submitter_can_vote must remain hardcoded to false in modules/project-archetype/branch_policies.tf"),
-    ('last_pusher_cannot_approve             = true' in branch_pol, "Tier 1 invariant: last_pusher_cannot_approve must remain hardcoded to true in modules/project-archetype/branch_policies.tf"),
-    ('"Policy.AllowOrgPublicProjects"                  = false' in bridge_main, "Tier 1 invariant: Policy.AllowOrgPublicProjects must remain false in modules/org-settings-api-bridge/main.tf"),
-    ('"Policy.DisallowAnonymousAccess"                 = true' in bridge_main, "Tier 1 invariant: Policy.DisallowAnonymousAccess must remain true in modules/org-settings-api-bridge/main.tf"),
+    (bool(re.search(r'visibility\s*=\s*"private"', proj_main)), "Tier 1 invariant: project visibility must remain hardcoded to 'private' in modules/project-archetype/main.tf"),
+    (bool(re.search(r'submitter_can_vote\s*=\s*false', branch_pol)), "Tier 1 invariant: submitter_can_vote must remain hardcoded to false in modules/project-archetype/branch_policies.tf"),
+    (bool(re.search(r'last_pusher_cannot_approve\s*=\s*true', branch_pol)), "Tier 1 invariant: last_pusher_cannot_approve must remain hardcoded to true in modules/project-archetype/branch_policies.tf"),
+    (bool(re.search(r'"Policy\.AllowOrgPublicProjects"\s*=\s*false', bridge_main)), "Tier 1 invariant: Policy.AllowOrgPublicProjects must remain false in modules/org-settings-api-bridge/main.tf"),
+    (bool(re.search(r'"Policy\.DisallowAnonymousAccess"\s*=\s*true', bridge_main)), "Tier 1 invariant: Policy.DisallowAnonymousAccess must remain true in modules/org-settings-api-bridge/main.tf"),
 ]
 
 failed = False

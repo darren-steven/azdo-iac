@@ -22,8 +22,8 @@ module "org_settings_bridge" {
 resource "azuredevops_group" "org_groups" {
   for_each = local.groups_by_name
 
-  display_name = each.value.name
-  description  = "[${upper(each.value.role_tier)}] ${each.value.description}"
+  display_name = each.value.entra_group_origin_id == null ? each.value.name : null
+  description  = each.value.entra_group_origin_id == null ? "[${upper(each.value.role_tier)}] ${each.value.description}" : null
   origin_id    = each.value.entra_group_origin_id
 }
 

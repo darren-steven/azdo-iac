@@ -9,8 +9,8 @@
 # =============================================================================
 
 organization:
-  name: "contoso-engineering"
-  service_url: "https://dev.azure.com/contoso-engineering"
+  name: "tofutest"
+  service_url: "https://dev.azure.com/tofutest"
   default_process_template: "Agile"
 
 # -----------------------------------------------------------------------------

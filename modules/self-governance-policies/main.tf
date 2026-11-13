@@ -45,10 +45,10 @@ resource "azuredevops_branch_policy_auto_reviewers" "maintainer_dials_review" {
   blocking   = true
 
   settings {
-    auto_reviewer_ids          = [var.maintainers_group_id, var.platform_admins_group_id]
-    submitter_can_vote         = false
+    auto_reviewer_ids           = [var.maintainers_group_id, var.platform_admins_group_id]
+    submitter_can_vote          = false
     minimum_number_of_reviewers = 1
-    message                    = "Governance Maintainer or Platform Admin approval is required for project onboarding and group dial changes."
+    message                     = "Governance Maintainer or Platform Admin approval is required for project onboarding and group dial changes."
     path_filters = [
       "/config/projects/*",
       "/config/groups.yaml"

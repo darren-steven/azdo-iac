@@ -7,7 +7,7 @@ variable "config_dir" {
 variable "enable_rest_bridge" {
   description = "Whether to enable live REST API calls for organization-level settings not in microsoft/azuredevops."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "azdo_personal_access_token" {

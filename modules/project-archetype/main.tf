@@ -122,12 +122,12 @@ resource "azuredevops_check_approval" "env_approvals" {
   target_resource_id   = azuredevops_environment.envs[each.key].id
   target_resource_type = "environment"
 
-  requester_can_approve = false # TIER 1 IMMUTABLE BASELINE: No self-approval on deployments
+  requester_can_approve      = false # TIER 1 IMMUTABLE BASELINE: No self-approval on deployments
   minimum_required_approvers = 1
-  timeout               = 43200
+  timeout                    = 43200
 
   approvers = [
-    azuredevops_team.teams[each.value.approver_team].descriptor
+    azuredevops_team.teams[each.value.approver_team].id
   ]
 }
 
@@ -148,9 +148,8 @@ resource "azuredevops_variable_group" "plain_vars" {
   dynamic "variable" {
     for_each = each.value.variables
     content {
-      name      = variable.key
-      value     = variable.value
-      is_secret = false
+      name  = variable.key
+      value = variable.value
     }
   }
 }

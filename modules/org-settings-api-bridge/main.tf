@@ -13,17 +13,17 @@ locals {
     # -------------------------------------------------------------------------
     # TIER 1 IMMUTABLE BASELINES (Hardcoded — Never expose as variables)
     # -------------------------------------------------------------------------
-    "Policy.AllowOrgPublicProjects"                  = false
-    "Policy.DisallowAnonymousAccess"                 = true
-    "Policy.EnforceAADConditionalAccess"             = true
-    "Pipelines.General.DisableClassicBuildPipelines" = true
+    "Policy.AllowOrgPublicProjects"                    = false
+    "Policy.DisallowAnonymousAccess"                   = true
+    "Policy.EnforceAADConditionalAccess"               = true
+    "Pipelines.General.DisableClassicBuildPipelines"   = true
     "Pipelines.General.DisableClassicReleasePipelines" = true
 
     # -------------------------------------------------------------------------
     # TIER 2 BOUNDED DIALS (Driven from validated config/org.yaml)
     # -------------------------------------------------------------------------
-    "Policy.AllowTeamAdminsInvitations" = var.allow_team_admins_invite
-    "Policy.EnableSshAuthentication"    = var.ssh_authentication_enabled
+    "Policy.AllowTeamAdminsInvitations"  = var.allow_team_admins_invite
+    "Policy.EnableSshAuthentication"     = var.ssh_authentication_enabled
     "Policy.DisallowOAuthAuthentication" = var.disallow_third_party_oauth
   }
 }
@@ -39,7 +39,7 @@ resource "restapi_object" "org_host_settings" {
   id_attribute = "id"
   object_id    = var.organization_name
 
-  data = jsonencode( merge(
+  data = jsonencode(merge(
     { id = var.organization_name },
     local.enforced_org_settings
   ))

@@ -19,36 +19,36 @@ locals {
   # Standard Git Repository Permission Presets by Team Role
   git_role_permissions = {
     reader = {
-      GenericRead          = "allow"
-      GenericContribute    = "notset"
-      CreateBranch         = "notset"
+      GenericRead           = "allow"
+      GenericContribute     = "notset"
+      CreateBranch          = "notset"
       PullRequestContribute = "notset"
-      ForcePush            = "deny"
-      EditPolicies         = "deny"
-      DeleteRepository     = "deny"
-      ManagePermissions    = "deny"
+      ForcePush             = "deny"
+      EditPolicies          = "deny"
+      DeleteRepository      = "deny"
+      ManagePermissions     = "deny"
     }
     contributor = {
-      GenericRead          = "allow"
-      GenericContribute    = "allow"
-      CreateBranch         = "allow"
+      GenericRead           = "allow"
+      GenericContribute     = "allow"
+      CreateBranch          = "allow"
       PullRequestContribute = "allow"
-      ForcePush            = "deny" # Tier 1 Baseline: ForcePush denied by default
-      EditPolicies         = "deny" # Tier 1 Baseline: Contributors cannot edit branch policies
-      DeleteRepository     = "deny"
-      ManagePermissions    = "deny"
+      ForcePush             = "deny" # Tier 1 Baseline: ForcePush denied by default
+      EditPolicies          = "deny" # Tier 1 Baseline: Contributors cannot edit branch policies
+      DeleteRepository      = "deny"
+      ManagePermissions     = "deny"
     }
     lead = {
-      GenericRead          = "allow"
-      GenericContribute    = "allow"
-      CreateBranch         = "allow"
-      CreateTag            = "allow"
+      GenericRead           = "allow"
+      GenericContribute     = "allow"
+      CreateBranch          = "allow"
+      CreateTag             = "allow"
       PullRequestContribute = "allow"
-      ManageNote           = "allow"
-      ForcePush            = "deny" # Tier 1 Baseline: Even leads cannot force-push protected branches
-      EditPolicies         = "deny" # Tier 1 Baseline: Branch policies are managed exclusively by IaC
-      DeleteRepository     = "deny"
-      ManagePermissions    = "deny"
+      ManageNote            = "allow"
+      ForcePush             = "deny" # Tier 1 Baseline: Even leads cannot force-push protected branches
+      EditPolicies          = "deny" # Tier 1 Baseline: Branch policies are managed exclusively by IaC
+      DeleteRepository      = "deny"
+      ManagePermissions     = "deny"
     }
   }
 }
