@@ -164,6 +164,10 @@ for pf in project_files:
             if tname not in team_names:
                 errors.append(f"[PROJ-POLICY-006] {pf}: repo '{repo.get('name')}' path_reviewers references unknown team '{tname}'")
 
+    if (proj.get("features") or {}).get("repositories") == "enabled":
+        if not proj.get("create_default_repository", False) and len(proj.get("repositories") or []) == 0:
+            errors.append(f"[PROJ-POLICY-008] {pf}: project with repositories enabled must either declare at least one repo in 'repositories' or set 'create_default_repository: true'")
+
     for vg in proj.get("variable_groups", []):
         for vkey in (vg.get("variables") or {}).keys():
             ukey = vkey.upper()

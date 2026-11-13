@@ -36,7 +36,7 @@ resource "azuredevops_branch_policy_min_reviewers" "default_branch" {
     on_push_reset_approved_votes           = var.branch_policy_dials.reset_votes_on_new_push
 
     scope {
-      repository_id  = azuredevops_git_repository.repos[each.key].id
+      repository_id  = local.all_managed_repo_ids[each.key]
       repository_ref = each.value.default_branch
       match_type     = "Exact"
     }
@@ -56,7 +56,7 @@ resource "azuredevops_branch_policy_comment_resolution" "default_branch" {
 
   settings {
     scope {
-      repository_id  = azuredevops_git_repository.repos[each.key].id
+      repository_id  = local.all_managed_repo_ids[each.key]
       repository_ref = each.value.default_branch
       match_type     = "Exact"
     }
@@ -76,7 +76,7 @@ resource "azuredevops_branch_policy_work_item_linking" "default_branch" {
 
   settings {
     scope {
-      repository_id  = azuredevops_git_repository.repos[each.key].id
+      repository_id  = local.all_managed_repo_ids[each.key]
       repository_ref = each.value.default_branch
       match_type     = "Exact"
     }
@@ -98,7 +98,7 @@ resource "azuredevops_branch_policy_merge_types" "default_branch" {
     allow_rebase_with_merge       = var.branch_policy_dials.allowed_merge_types.rebase_merge
 
     scope {
-      repository_id  = azuredevops_git_repository.repos[each.key].id
+      repository_id  = local.all_managed_repo_ids[each.key]
       repository_ref = each.value.default_branch
       match_type     = "Exact"
     }
@@ -120,7 +120,7 @@ resource "azuredevops_branch_policy_auto_reviewers" "path_scoped" {
     path_filters       = each.value.paths
 
     scope {
-      repository_id  = azuredevops_git_repository.repos[each.value.repo_name].id
+      repository_id  = local.all_managed_repo_ids[each.value.repo_name]
       repository_ref = local.repos_by_name[each.value.repo_name].default_branch
       match_type     = "Exact"
     }

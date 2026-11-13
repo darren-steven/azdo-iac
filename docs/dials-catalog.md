@@ -56,3 +56,9 @@ This catalog documents every governance control managed by `AzDo-IaC`, classifie
 | `standard-microservice` | `2` .. `5` (Default: `2`) | `12` .. `72` (Default: `24`) | Standard engineering services, libraries, and internal applications. |
 | `regulated-workload` | **`3` .. `5`** (Enforced >= 3) | **`12`** (Enforced <= 12) | PCI/SOX/regulated services requiring stricter quorum and fresher build validation. |
 | `sandbox` | `2` .. `5` (Default: `2`) | `12` .. `72` (Default: `48`) | Non-production proofs of concept isolated from production service connections. |
+
+### Project-Level Repository Dials (`config/projects/<key>.yaml`)
+
+| YAML Path | Type | Default | Allowed Bounds | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `project.create_default_repository` | `boolean` | `false` | `true` / `false` | When `false` (default), removes the unmanaged `<Project Name>` repository that Azure DevOps auto-creates. When `true`, creates and governs the `<Project Name>` repository with full branch protection policies and team permissions just like any other repository. |

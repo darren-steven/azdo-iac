@@ -46,6 +46,11 @@
           "enum": ["Agile", "Scrum", "CMMI", "Basic"],
           "default": "Agile"
         },
+        "create_default_repository": {
+          "type": "boolean",
+          "default": false,
+          "description": "Dial: Whether to keep and govern the default '<Project Name>' Git repository with standard branch policies and permissions. When false (default), the unmanaged default repo auto-created by Azure DevOps is automatically removed."
+        },
         "features": {
           "type": "object",
           "additionalProperties": false,
@@ -126,7 +131,7 @@
         },
         "repositories": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "items": {
             "type": "object",
             "additionalProperties": false,

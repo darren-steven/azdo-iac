@@ -5,7 +5,7 @@ output "project_id" {
 
 output "repository_ids" {
   description = "Map of repository names to their GUIDs."
-  value       = { for k, r in azuredevops_git_repository.repos : k => r.id }
+  value       = local.all_managed_repo_ids
 }
 
 output "team_descriptors" {

@@ -1,3 +1,8 @@
+variable "org_service_url" {
+  description = "HTTPS URL of the Azure DevOps organization."
+  type        = string
+}
+
 variable "project_key" {
   description = "Unique immutable slug key for the project."
   type        = string
@@ -11,6 +16,12 @@ variable "project_key" {
 variable "project_name" {
   description = "Display name of the Azure DevOps project."
   type        = string
+}
+
+variable "create_default_repository" {
+  description = "Tier 2 Dial: Whether to create and govern the default '<project_name>' Git repository with full branch policies and permissions. When false (default), the unmanaged default repo auto-created by Azure DevOps is deleted."
+  type        = bool
+  default     = false
 }
 
 variable "description" {

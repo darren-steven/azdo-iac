@@ -90,3 +90,16 @@ deny contains msg if {
 		[input.project.key, vg.name, var_key, pattern],
 	)
 }
+
+# Guardrail 5: When repositories feature is enabled, at least one governed repository must exist
+deny contains msg if {
+	input.project.features.repositories == "enabled"
+	create_def := object.get(input.project, "create_default_repository", false)
+	repos := object.get(input.project, "repositories", [])
+	not create_def
+	count(repos) == 0
+	msg := sprintf(
+		"[PROJ-POLICY-008] Project '%s' has repositories enabled and must either declare at least one repo in 'repositories' or set 'create_default_repository: true'.",
+		[input.project.key],
+	)
+}

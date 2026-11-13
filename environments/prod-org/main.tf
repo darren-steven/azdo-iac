@@ -52,13 +52,15 @@ module "projects" {
   source   = "../../modules/project-archetype"
   for_each = local.projects_by_key
 
-  project_key      = each.value.key
-  project_name     = each.value.name
-  description      = each.value.description
-  archetype        = each.value.archetype
-  process_template = try(each.value.process_template, local.org_config.organization.default_process_template)
-  features         = each.value.features
-  pipeline_dials   = local.org_config.pipeline_dials
+  org_service_url           = local.org_config.organization.service_url
+  project_key               = each.value.key
+  project_name              = each.value.name
+  description               = each.value.description
+  archetype                 = each.value.archetype
+  process_template          = try(each.value.process_template, local.org_config.organization.default_process_template)
+  create_default_repository = try(each.value.create_default_repository, false)
+  features                  = each.value.features
+  pipeline_dials            = local.org_config.pipeline_dials
 
   # Merge org-level repository_defaults with any project-specific dial overrides
   branch_policy_dials = {

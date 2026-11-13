@@ -10,8 +10,12 @@ project:
   archetype: "standard-microservice"
   process_template: "Agile"
 
+  # Dial: Set true to create & govern the default '<Project Name>' repository with
+  # standard branch policies; set false (default) to remove Azure DevOps's unmanaged default repo.
+  create_default_repository: false
+
   features:
-    boards: "enabled"
+    boards: "disabled"
     repositories: "enabled"
     pipelines: "enabled"
     testplans: "disabled"

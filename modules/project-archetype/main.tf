@@ -7,8 +7,26 @@ module "security_constants" {
 }
 
 locals {
-  teams_by_name        = { for t in var.teams : t.name => t }
-  repos_by_name        = { for r in var.repositories : r.name => r }
+  teams_by_name = { for t in var.teams : t.name => t }
+
+  # Explicit repositories declared in YAML
+  explicit_repos_by_name = { for r in var.repositories : r.name => r }
+
+  # Combined map of all governed repositories (including the default '<project_name>'
+  # repository when create_default_repository = true) so branch policies and
+  # team permissions apply uniformly to all of them.
+  repos_by_name = merge(
+    local.explicit_repos_by_name,
+    var.create_default_repository ? {
+      (var.project_name) = {
+        name                           = var.project_name
+        default_branch                 = "refs/heads/main"
+        build_validation_pipeline_name = null
+        path_reviewers                 = []
+      }
+    } : {}
+  )
+
   environments_by_name = { for e in var.environments : e.name => e }
   var_groups_by_name   = { for vg in var.variable_groups : vg.name => vg }
 
@@ -78,8 +96,10 @@ resource "azuredevops_team" "teams" {
   description = each.value.description
 }
 
+# Step 2a: Create explicit repositories declared in YAML first (ensures at least
+# one repository exists in the project before deleting Azure DevOps's unmanaged default stub).
 resource "azuredevops_git_repository" "repos" {
-  for_each = local.repos_by_name
+  for_each = local.explicit_repos_by_name
 
   project_id     = azuredevops_project.this.id
   name           = each.value.name
@@ -90,11 +110,133 @@ resource "azuredevops_git_repository" "repos" {
   }
 }
 
+# Step 2b: Reconcile the project's default '<project_name>' repository:
+# - When create_default_repository = false: deletes the unmanaged '<project_name>' repository.
+# - When create_default_repository = true: adopts the existing '<project_name>' repository in-place
+#   (or creates it if previously deleted) and initializes refs/heads/main if empty.
+resource "terraform_data" "reconcile_default_repository" {
+  depends_on = [azuredevops_git_repository.repos]
+
+  triggers_replace = [
+    azuredevops_project.this.id,
+    var.project_name,
+    tostring(var.create_default_repository)
+  ]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      python3 - "${var.org_service_url}" "${azuredevops_project.this.id}" "${var.project_name}" "${tostring(var.create_default_repository)}" <<'PYEOF'
+import base64, json, os, sys, time, urllib.error, urllib.request
+
+org_url = sys.argv[1].rstrip("/")
+project_id = sys.argv[2]
+project_name = sys.argv[3]
+create_default = sys.argv[4].lower() == "true"
+
+token = os.environ.get("AZDO_PERSONAL_ACCESS_TOKEN", "")
+if not token:
+    sys.exit(0)
+
+auth_hdr = f"Bearer {token}" if token.startswith("eyJ") else "Basic " + base64.b64encode(f":{token}".encode()).decode()
+headers = {"Authorization": auth_hdr, "Content-Type": "application/json"}
+
+def api_call(url, method="GET", payload=None):
+    data = json.dumps(payload).encode("utf-8") if payload is not None else None
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req) as resp:
+        raw = resp.read().decode("utf-8")
+        return json.loads(raw) if raw else {}
+
+repos_url = f"{org_url}/{project_id}/_apis/git/repositories?api-version=7.1"
+repos = api_call(repos_url).get("value", [])
+default_repo = next((r for r in repos if r.get("name") == project_name), None)
+
+if not create_default:
+    if default_repo:
+        del_url = f"{org_url}/{project_id}/_apis/git/repositories/{default_repo['id']}?api-version=7.1"
+        api_call(del_url, method="DELETE")
+        print(f"Deleted unmanaged default repository '{project_name}' ({default_repo['id']})")
+    sys.exit(0)
+
+# create_default is True: Adopt existing repo in-place or create it if previously deleted
+if not default_repo:
+    default_repo = api_call(
+        repos_url,
+        method="POST",
+        payload={"name": project_name, "project": {"id": project_id}}
+    )
+    print(f"Created default repository '{project_name}' ({default_repo['id']})")
+    time.sleep(2)
+
+repo_id = default_repo["id"]
+refs_url = f"{org_url}/{project_id}/_apis/git/repositories/{repo_id}/refs?filter=heads/main&api-version=7.1"
+refs = api_call(refs_url).get("value", [])
+
+if not refs:
+    push_url = f"{org_url}/{project_id}/_apis/git/repositories/{repo_id}/pushes?api-version=7.1"
+    push_payload = {
+        "refUpdates": [
+            {
+                "name": "refs/heads/main",
+                "oldObjectId": "0000000000000000000000000000000000000000"
+            }
+        ],
+        "commits": [
+            {
+                "comment": "Initial commit (Managed by AzDo-IaC)",
+                "changes": [
+                    {
+                        "changeType": "add",
+                        "item": {"path": "/README.md"},
+                        "newContent": {
+                            "content": f"# {project_name}\n\nManaged by AzDo-IaC.\n",
+                            "contentType": "rawtext"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+    for attempt in range(5):
+        try:
+            api_call(push_url, method="POST", payload=push_payload)
+            print(f"Initialized default repository '{project_name}' with refs/heads/main")
+            break
+        except urllib.error.HTTPError as e:
+            if attempt < 4:
+                time.sleep(2)
+            else:
+                err_body = e.read().decode("utf-8", errors="replace")
+                print(f"Failed initializing '{project_name}': HTTP {e.code} - {err_body}", file=sys.stderr)
+                sys.exit(1)
+PYEOF
+    EOT
+  }
+}
+
+# Step 2c: When create_default_repository = true, look up the initialized '<project_name>'
+# repository so OpenTofu attaches all branch policies and team permissions to it.
+data "azuredevops_git_repository" "default_repo" {
+  count      = var.create_default_repository ? 1 : 0
+  depends_on = [terraform_data.reconcile_default_repository]
+
+  project_id = azuredevops_project.this.id
+  name       = var.project_name
+}
+
+locals {
+  # Unified map of repository name -> repository ID across explicit + optional default repo
+  all_managed_repo_ids = merge(
+    { for k, r in azuredevops_git_repository.repos : k => r.id },
+    var.create_default_repository ? { (var.project_name) = data.azuredevops_git_repository.default_repo[0].id } : {}
+  )
+}
+
 resource "azuredevops_git_permissions" "team_repo_access" {
   for_each = local.team_repo_permissions
 
   project_id    = azuredevops_project.this.id
-  repository_id = azuredevops_git_repository.repos[each.value.repo_name].id
+  repository_id = local.all_managed_repo_ids[each.value.repo_name]
   principal     = azuredevops_team.teams[each.value.team_name].descriptor
   replace       = false
 

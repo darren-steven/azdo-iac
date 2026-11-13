@@ -6,6 +6,7 @@ project:
   name: "Payments API"
   description: "Core payments processing microservice and asynchronous settlement workers."
   archetype: "standard-microservice"
+  create_default_repository: false
 
   # Feature toggles (visibility is locked to 'private' by Tier 1 baseline)
   features:
