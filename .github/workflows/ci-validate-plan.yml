@@ -6,10 +6,9 @@ on:
   push:
     branches: ["main"]
 
+# Least-privilege default token permissions for public repository safety
 permissions:
-  id-token: write   # Required for Entra ID OIDC Workload Identity Federation
   contents: read
-  pull-requests: write
 
 jobs:
   validate-guardrails:
@@ -39,8 +38,14 @@ jobs:
     name: "2. OpenTofu Plan (Azure DevOps Org)"
     needs: validate-guardrails
     runs-on: ubuntu-latest
-    # Runs full plan when AZDO credentials/OIDC are configured in repository secrets/variables
-    if: ${{ vars.AZDO_CONTROL_PLANE_ENABLED == 'true' }}
+    # Only run plan when enabled AND never on pull requests originating from external forks
+    if: >-
+      vars.AZDO_CONTROL_PLANE_ENABLED == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
     defaults:
       run:
         working-directory: environments/prod-org
