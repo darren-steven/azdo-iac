@@ -1,0 +1,229 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://contoso.internal/schemas/azdo-project.schema.json",
+  "title": "Azure DevOps Project Archetype & Dials Schema",
+  "description": "Validates per-project configuration files in config/projects/*.yaml.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project"],
+  "properties": {
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "name",
+        "description",
+        "archetype",
+        "features",
+        "teams",
+        "repositories"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,48}$",
+          "description": "Immutable slug key used as the OpenTofu for_each key and filename."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64,
+          "description": "Display name of the Azure DevOps project."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Clear description of the project's purpose and owning domain."
+        },
+        "archetype": {
+          "type": "string",
+          "enum": ["standard-microservice", "regulated-workload", "sandbox"],
+          "description": "Governance archetype controlling baseline policy thresholds."
+        },
+        "process_template": {
+          "type": "string",
+          "enum": ["Agile", "Scrum", "CMMI", "Basic"],
+          "default": "Agile"
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["boards", "repositories", "pipelines", "testplans", "artifacts"],
+          "properties": {
+            "boards": { "type": "string", "enum": ["enabled", "disabled"] },
+            "repositories": { "type": "string", "enum": ["enabled", "disabled"] },
+            "pipelines": { "type": "string", "enum": ["enabled", "disabled"] },
+            "testplans": { "type": "string", "enum": ["enabled", "disabled"] },
+            "artifacts": { "type": "string", "enum": ["enabled", "disabled"] }
+          }
+        },
+        "branch_policy_dials": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Optional project-level overrides for Tier 2 branch policy dials (must remain within baseline bounds).",
+          "properties": {
+            "min_reviewers": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 5,
+              "description": "Dial: Minimum required reviewers on default branch (2..5; regulated-workload requires >= 3)."
+            },
+            "reset_votes_on_new_push": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_work_item_linking": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_comment_resolution": {
+              "type": "boolean",
+              "default": true
+            },
+            "build_validation_expiry_hours": {
+              "type": "integer",
+              "minimum": 12,
+              "maximum": 72,
+              "default": 24,
+              "description": "Dial: Build validation expiration in hours (12..72)."
+            },
+            "allowed_merge_types": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["squash", "no_fast_forward", "rebase", "rebase_merge"],
+              "properties": {
+                "squash": { "type": "boolean" },
+                "no_fast_forward": { "type": "boolean" },
+                "rebase": { "type": "boolean" },
+                "rebase_merge": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "teams": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description", "role"],
+            "properties": {
+              "name": { "type": "string", "minLength": 3 },
+              "description": { "type": "string" },
+              "role": {
+                "type": "string",
+                "enum": ["reader", "contributor", "lead"],
+                "description": "Maps to least-privilege project & repository permissions."
+              },
+              "members": {
+                "type": "array",
+                "items": { "type": "string", "format": "email" },
+                "default": []
+              }
+            }
+          }
+        },
+        "repositories": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "default_branch"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-_]{1,62}$"
+              },
+              "default_branch": {
+                "type": "string",
+                "enum": ["refs/heads/main"],
+                "default": "refs/heads/main"
+              },
+              "build_validation_pipeline_name": {
+                "type": "string",
+                "description": "Optional CI pipeline name to wire into blocking PR build validation."
+              },
+              "path_reviewers": {
+                "type": "array",
+                "description": "Optional path-filtered automatic reviewers (AzDO native equivalent to CODEOWNERS).",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["team_name", "paths", "blocking"],
+                  "properties": {
+                    "team_name": { "type": "string" },
+                    "paths": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": { "type": "string", "pattern": "^/.*" }
+                    },
+                    "blocking": { "type": "boolean", "default": true }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "environments": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description", "require_approval"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-_]{1,32}$"
+              },
+              "description": { "type": "string" },
+              "require_approval": { "type": "boolean" },
+              "approver_team": {
+                "type": "string",
+                "description": "Team name in this project required to approve deployments when require_approval is true."
+              }
+            }
+          }
+        },
+        "variable_groups": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-_]{2,62}$"
+              },
+              "description": { "type": "string" },
+              "variables": {
+                "type": "object",
+                "description": "Non-sensitive plain-text configuration variables ONLY. Secret key names will be rejected by policy.",
+                "additionalProperties": { "type": "string" }
+              },
+              "key_vault": {
+                "type": "object",
+                "description": "Azure Key Vault linkage required for any secret values.",
+                "additionalProperties": false,
+                "required": ["name", "service_connection_name", "secret_names"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "service_connection_name": { "type": "string" },
+                  "secret_names": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://contoso.internal/schemas/azdo-org.schema.json",
+  "title": "Azure DevOps Organization Policy & Dials Schema",
+  "description": "Validates organization-level configuration dials (Tier 2) against the Azure DevOps Organization baseline (Tier 1).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "organization",
+    "security_dials",
+    "pipeline_dials",
+    "repository_defaults",
+    "agent_pools"
+  ],
+  "properties": {
+    "organization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "service_url"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]{1,62}$",
+          "description": "The Azure DevOps organization slug (e.g., 'contoso-engineering')."
+        },
+        "service_url": {
+          "type": "string",
+          "pattern": "^https://dev\\.azure\\.com/[a-zA-Z0-9][a-zA-Z0-9-]{1,62}/?$",
+          "description": "Full HTTPS URL of the Azure DevOps organization."
+        },
+        "default_process_template": {
+          "type": "string",
+          "enum": ["Agile", "Scrum", "CMMI", "Basic"],
+          "default": "Agile",
+          "description": "Default work item process template for new projects unless overridden."
+        }
+      }
+    },
+    "security_dials": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Organization-level security dials. Note: Public projects (false), Anonymous access (disallowed), and Conditional Access (enforced) are Tier 1 locked baselines and cannot be toggled here.",
+      "required": [
+        "allow_team_admins_invite",
+        "ssh_authentication_enabled",
+        "disallow_third_party_oauth"
+      ],
+      "properties": {
+        "allow_team_admins_invite": {
+          "type": "boolean",
+          "default": false,
+          "description": "Dial: Whether Project and Team Administrators can invite new users to the organization (Default: false)."
+        },
+        "ssh_authentication_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Whether SSH key authentication is allowed for Git operations across the organization (Default: true)."
+        },
+        "disallow_third_party_oauth": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Block third-party application access via OAuth (Default: true; Entra ID auth remains enabled)."
+        }
+      }
+    },
+    "pipeline_dials": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Organization and default project pipeline dials. Note: Classic Build and Classic Release pipelines are disabled by Tier 1 baseline.",
+      "required": [
+        "default_job_timeout_minutes",
+        "enforce_settable_var_at_queue",
+        "enforce_job_auth_scope_to_project",
+        "enforce_referenced_repo_scoped_token",
+        "publish_pipeline_metadata"
+      ],
+      "properties": {
+        "default_job_timeout_minutes": {
+          "type": "integer",
+          "minimum": 15,
+          "maximum": 180,
+          "default": 60,
+          "description": "Dial: Default pipeline job timeout in minutes (Allowed bound: 15..180)."
+        },
+        "enforce_settable_var_at_queue": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Restrict variables that can be set when a pipeline is queued only to those explicitly marked settable at queue time."
+        },
+        "enforce_job_auth_scope_to_project": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Limit job authorization scope to the current project for non-release and release pipelines."
+        },
+        "enforce_referenced_repo_scoped_token": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Protect access to repositories in YAML pipelines by scoping tokens to explicitly referenced repositories."
+        },
+        "publish_pipeline_metadata": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Allow pipelines to record build and deployment metadata for traceability."
+        }
+      }
+    },
+    "repository_defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Organization-wide default branch protection dials applied to every project unless overridden within allowed bounds.",
+      "required": [
+        "default_branch",
+        "min_reviewers",
+        "reset_votes_on_new_push",
+        "require_work_item_linking",
+        "require_comment_resolution",
+        "build_validation_expiry_hours",
+        "allowed_merge_types"
+      ],
+      "properties": {
+        "default_branch": {
+          "type": "string",
+          "enum": ["refs/heads/main"],
+          "default": "refs/heads/main",
+          "description": "Standard default branch name across the organization."
+        },
+        "min_reviewers": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 5,
+          "default": 2,
+          "description": "Dial: Default minimum required reviewers on pull requests to the default branch (Allowed bound: 2..5)."
+        },
+        "reset_votes_on_new_push": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Reset all approval votes when new changes are pushed to a pull request source branch."
+        },
+        "require_work_item_linking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Require every pull request to link at least one Azure Boards work item."
+        },
+        "require_comment_resolution": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dial: Require all PR review comments to be resolved before merge."
+        },
+        "build_validation_expiry_hours": {
+          "type": "integer",
+          "minimum": 12,
+          "maximum": 72,
+          "default": 24,
+          "description": "Dial: Hours before a passing PR build validation expires if the target branch is updated (Allowed bound: 12..72)."
+        },
+        "allowed_merge_types": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["squash", "no_fast_forward", "rebase", "rebase_merge"],
+          "properties": {
+            "squash": { "type": "boolean", "default": true },
+            "no_fast_forward": { "type": "boolean", "default": true },
+            "rebase": { "type": "boolean", "default": false },
+            "rebase_merge": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    },
+    "agent_pools": {
+      "type": "array",
+      "description": "Self-hosted or Managed DevOps Pool definitions at the organization level.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "auto_provision", "auto_update"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-_ ]{1,62}$"
+          },
+          "pool_type": {
+            "type": "string",
+            "enum": ["automation", "deployment"],
+            "default": "automation"
+          },
+          "auto_provision": {
+            "type": "boolean",
+            "default": false,
+            "description": "Dial: Automatically provision queues in all projects (Default: false to maintain least privilege)."
+          },
+          "auto_update": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    }
+  }
+}

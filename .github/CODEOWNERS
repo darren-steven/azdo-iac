@@ -1,0 +1,36 @@
+# =============================================================================
+# CODEOWNERS — Path-Scoped Governance Boundary
+# =============================================================================
+# Note: When hosted in GitHub (recommended out-of-band control plane), this file
+# enforces mandatory Platform Admin approval on the Baseline Engine & AI Guardrails
+# while allowing Maintainers to approve routine changes to config/ dials.
+#
+# If this repo is mirrored or hosted in Azure Repos, the equivalent path-filtered
+# reviewer policies are enforced by `modules/self-governance-policies/`.
+# =============================================================================
+
+# Default owner for everything in the repository
+*                                       @org/azdo-platform-admins
+
+# -----------------------------------------------------------------------------
+# Tier 2 & Tier 3 Maintainer Surface ("The Dials")
+# Maintainers can review and approve routine project onboarding & dial changes,
+# EXCEPT org.yaml which affects the entire Azure DevOps Organization.
+# -----------------------------------------------------------------------------
+/config/projects/                       @org/azdo-maintainers @org/azdo-platform-admins
+/config/groups.yaml                     @org/azdo-maintainers @org/azdo-platform-admins
+/config/org.yaml                        @org/azdo-platform-admins
+
+# -----------------------------------------------------------------------------
+# Tier 1 Protected Engine, Schemas, Policies & AI Guardrails
+# Strictly requires Platform Admin approval.
+# -----------------------------------------------------------------------------
+/modules/                               @org/azdo-platform-admins
+/environments/                          @org/azdo-platform-admins
+/schemas/                               @org/azdo-platform-admins
+/policies/                              @org/azdo-platform-admins
+/scripts/                               @org/azdo-platform-admins
+/.agents/                               @org/azdo-platform-admins
+/.github/                               @org/azdo-platform-admins
+/AGENTS.md                              @org/azdo-platform-admins
+/GEMINI.md                              @org/azdo-platform-admins

@@ -1,0 +1,14 @@
+{
+  "yaml.schemas": {
+    "./schemas/org.schema.json": "config/org.yaml",
+    "./schemas/groups.schema.json": "config/groups.yaml",
+    "./schemas/project.schema.json": [
+      "config/projects/*.yaml",
+      ".agents/skills/onboard-project/examples/*.yaml"
+    ]
+  },
+  "files.associations": {
+    "*.rego": "rego",
+    "*.tf": "terraform"
+  }
+}

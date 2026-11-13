@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=../../../../schemas/project.schema.json
+# Reference Template: Standard Microservice Project
+
+project:
+  key: "payments-api"
+  name: "Payments API"
+  description: "Core payments processing microservice and asynchronous settlement workers."
+  archetype: "standard-microservice"
+
+  # Feature toggles (visibility is locked to 'private' by Tier 1 baseline)
+  features:
+    boards: "enabled"
+    repositories: "enabled"
+    pipelines: "enabled"
+    testplans: "disabled"
+    artifacts: "enabled"
+
+  # Project-level bounded dials (optional overrides within Tier 2 bounds)
+  branch_policy_dials:
+    min_reviewers: 2                      # Allowed: 2..5
+    reset_votes_on_new_push: true
+    require_work_item_linking: true
+    require_comment_resolution: true
+    build_validation_expiry_hours: 24     # Allowed: 12..72
+    allowed_merge_types:
+      squash: true
+      no_fast_forward: true
+      rebase: false
+      rebase_merge: false
+
+  teams:
+    - name: "Payments Developers"
+      description: "Core engineering team for Payments API"
+      role: "contributor"
+      members:
+        - "payments-devs@contoso.com"
+    - name: "Payments Leads"
+      description: "Tech leads and release approvers"
+      role: "lead"
+      members:
+        - "payments-leads@contoso.com"
+
+  repositories:
+    - name: "payments-service"
+      default_branch: "refs/heads/main"
+      build_validation_pipeline_name: "payments-service-ci"
+    - name: "payments-contracts"
+      default_branch: "refs/heads/main"
+
+  environments:
+    - name: "dev"
+      description: "Development environment"
+      require_approval: false
+    - name: "staging"
+      description: "Pre-production staging environment"
+      require_approval: false
+    - name: "prod"
+      description: "Production environment"
+      require_approval: true
+      approver_team: "Payments Leads"
+
+  variable_groups:
+    - name: "payments-nonprod-config"
+      description: "Non-sensitive configuration for dev/staging"
+      variables:
+        LOG_LEVEL: "Information"
+        ASPNETCORE_ENVIRONMENT: "Staging"
+    - name: "payments-prod-secrets"
+      description: "Key Vault linked secrets for production"
+      key_vault:
+        name: "kv-contoso-payments-prod"
+        service_connection_name: "sc-azure-payments-prod"
+        secret_names:
+          - "SqlConnectionString"
+          - "StripeWebhookSigningKey"

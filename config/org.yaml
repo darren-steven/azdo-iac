@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=../schemas/org.schema.json
+# =============================================================================
+# Azure DevOps Organization Policy Dials (Tier 2)
+# =============================================================================
+# Maintainers: Edit the values below within the documented bounds.
+# Note: Tier 1 Immutable Baselines (no public projects, no anonymous access,
+# Entra ID Conditional Access, and disabled classic pipelines) are enforced
+# directly by the OpenTofu engine in `modules/` and cannot be disabled here.
+# =============================================================================
+
+organization:
+  name: "contoso-engineering"
+  service_url: "https://dev.azure.com/contoso-engineering"
+  default_process_template: "Agile"
+
+# -----------------------------------------------------------------------------
+# Security Dials (Organization-wide)
+# -----------------------------------------------------------------------------
+security_dials:
+  # Allow Project/Team Administrators to invite external or new users (Default: false)
+  allow_team_admins_invite: false
+
+  # Allow Git over SSH using registered SSH public keys (Default: true)
+  ssh_authentication_enabled: true
+
+  # Block legacy third-party OAuth app access (Default: true; Entra ID OIDC unaffected)
+  disallow_third_party_oauth: true
+
+# -----------------------------------------------------------------------------
+# Pipeline Governance Dials (Organization & Default Project Scope)
+# -----------------------------------------------------------------------------
+pipeline_dials:
+  # Default job execution timeout in minutes (Allowed bound: 15..180)
+  default_job_timeout_minutes: 60
+
+  # Restrict queue-time variables strictly to those marked settable at queue time
+  enforce_settable_var_at_queue: true
+
+  # Scope pipeline job authorization tokens strictly to the owning project
+  enforce_job_auth_scope_to_project: true
+
+  # Scope repository access tokens in YAML pipelines to explicitly referenced repos
+  enforce_referenced_repo_scoped_token: true
+
+  # Publish build and deployment traceability metadata
+  publish_pipeline_metadata: true
+
+# -----------------------------------------------------------------------------
+# Default Repository & Branch Protection Dials
+# Applied to all projects unless overridden within bounds in `config/projects/*.yaml`
+# -----------------------------------------------------------------------------
+repository_defaults:
+  default_branch: "refs/heads/main"
+
+  # Minimum required reviewers on default branch PRs (Allowed bound: 2..5)
+  min_reviewers: 2
+
+  # Reset existing approvals whenever new commits are pushed to the PR branch
+  reset_votes_on_new_push: true
+
+  # Require every PR to be linked to at least one Azure Boards work item
+  require_work_item_linking: true
+
+  # Require all PR review comment threads to be resolved before merge
+  require_comment_resolution: true
+
+  # Hours before a passing PR build validation expires when main moves (Allowed bound: 12..72)
+  build_validation_expiry_hours: 24
+
+  # Allowed merge strategies on default branch (At least one must be enabled)
+  allowed_merge_types:
+    squash: true
+    no_fast_forward: true
+    rebase: false
+    rebase_merge: false
+
+# -----------------------------------------------------------------------------
+# Organization-Level Agent Pools
+# -----------------------------------------------------------------------------
+agent_pools:
+  - name: "contoso-linux-mdp"
+    pool_type: "automation"
+    auto_provision: false
+    auto_update: true
+  - name: "contoso-regulated-mdp"
+    pool_type: "automation"
+    auto_provision: false
+    auto_update: true

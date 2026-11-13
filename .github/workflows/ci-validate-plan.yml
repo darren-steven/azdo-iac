@@ -1,0 +1,64 @@
+name: "AzDo-IaC Validate & OpenTofu Plan"
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+permissions:
+  id-token: write   # Required for Entra ID OIDC Workload Identity Federation
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-guardrails:
+    name: "1. Schema, Policy & AI Guardrails Check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.8.2"
+
+      - name: Run Unified Validation Harness
+        run: ./scripts/validate.sh
+
+  opentofu-plan:
+    name: "2. OpenTofu Plan (Azure DevOps Org)"
+    needs: validate-guardrails
+    runs-on: ubuntu-latest
+    # Runs full plan when AZDO credentials/OIDC are configured in repository secrets/variables
+    if: ${{ vars.AZDO_CONTROL_PLANE_ENABLED == 'true' }}
+    working-directory: environments/prod-org
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.8.2"
+
+      - name: OpenTofu Init
+        run: tofu init
+
+      - name: OpenTofu Validate
+        run: tofu validate
+
+      - name: OpenTofu Plan
+        env:
+          AZDO_ORG_SERVICE_URL: ${{ vars.AZDO_ORG_SERVICE_URL }}
+          AZDO_PERSONAL_ACCESS_TOKEN: ${{ secrets.AZDO_PERSONAL_ACCESS_TOKEN }}
+        run: tofu plan -out=tfplan

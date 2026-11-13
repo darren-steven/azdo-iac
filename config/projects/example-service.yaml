@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=../../schemas/project.schema.json
+# =============================================================================
+# Example Project Configuration: Core Platform Service
+# =============================================================================
+
+project:
+  key: "example-service"
+  name: "Example Platform Service"
+  description: "Reference microservice project demonstrating standard branch policies, teams, environments, and Key Vault integration."
+  archetype: "standard-microservice"
+  process_template: "Agile"
+
+  features:
+    boards: "enabled"
+    repositories: "enabled"
+    pipelines: "enabled"
+    testplans: "disabled"
+    artifacts: "enabled"
+
+  branch_policy_dials:
+    min_reviewers: 2
+    reset_votes_on_new_push: true
+    require_work_item_linking: true
+    require_comment_resolution: true
+    build_validation_expiry_hours: 24
+    allowed_merge_types:
+      squash: true
+      no_fast_forward: true
+      rebase: false
+      rebase_merge: false
+
+  teams:
+    - name: "Example Service Developers"
+      description: "Day-to-day feature contributors for Example Platform Service"
+      role: "contributor"
+      members:
+        - "dev-team@contoso.com"
+    - name: "Example Service Maintainers"
+      description: "Technical leads and production deployment approvers"
+      role: "lead"
+      members:
+        - "tech-leads@contoso.com"
+    - name: "Example Service Readers"
+      description: "Stakeholders and read-only observers"
+      role: "reader"
+      members: []
+
+  repositories:
+    - name: "example-service-api"
+      default_branch: "refs/heads/main"
+      build_validation_pipeline_name: "example-service-api-ci"
+      path_reviewers:
+        - team_name: "Example Service Maintainers"
+          paths:
+            - "/infra/*"
+            - "/.azdo/*"
+          blocking: true
+    - name: "example-service-worker"
+      default_branch: "refs/heads/main"
+
+  environments:
+    - name: "dev"
+      description: "Development integration environment"
+      require_approval: false
+    - name: "staging"
+      description: "Pre-production verification environment"
+      require_approval: false
+    - name: "prod"
+      description: "Production customer-facing environment"
+      require_approval: true
+      approver_team: "Example Service Maintainers"
+
+  variable_groups:
+    - name: "example-service-nonprod-vars"
+      description: "Non-sensitive runtime configuration for dev and staging"
+      variables:
+        SERVICE_REGION: "australiaeast"
+        LOG_LEVEL: "Information"
+    - name: "example-service-prod-secrets"
+      description: "Production secrets backed by Azure Key Vault"
+      key_vault:
+        name: "kv-contoso-example-prod"
+        service_connection_name: "sc-azure-example-prod"
+        secret_names:
+          - "DatabaseConnectionString"
+          - "EventGridTopicKey"
