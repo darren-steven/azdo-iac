@@ -41,7 +41,9 @@ jobs:
     runs-on: ubuntu-latest
     # Runs full plan when AZDO credentials/OIDC are configured in repository secrets/variables
     if: ${{ vars.AZDO_CONTROL_PLANE_ENABLED == 'true' }}
-    working-directory: environments/prod-org
+    defaults:
+      run:
+        working-directory: environments/prod-org
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
