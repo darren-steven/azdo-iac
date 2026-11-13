@@ -5,20 +5,20 @@ Here is a tour of what you will see in **`https://dev.azure.com/tofutest`**, map
 ### 1. Organization-Level Settings (`https://dev.azure.com/tofutest/_settings/`)
 
 * **Organization settings → Permissions (`/_settings/groups`)**
-  * You will see the 4 governance groups defined in [config/groups.yaml](file:///home/darrensteven/Projects/AzDo-IaC/config/groups.yaml):
+  * You will see the 4 governance groups defined in [config/groups.yaml](../config/groups.yaml):
     * **AzDO Platform Admins** (`[PLATFORM-ADMIN] ...`)
     * **AzDO Governance Maintainers** (`[MAINTAINER] ...`)
     * **AzDO Security Auditors** (`[AUDITOR] ...`)
     * **AzDO IaC Control Plane Automation** (`[SERVICE-PRINCIPAL-AUTOMATION] ...`)
 * **Organization settings → Pipelines → Agent pools (`/_settings/agentpools`)**
-  * You will see the 2 custom pools from [config/org.yaml](file:///home/darrensteven/Projects/AzDo-IaC/config/org.yaml):
+  * You will see the 2 custom pools from [config/org.yaml](../config/org.yaml):
     * **`contoso-linux-mdp`** and **`contoso-regulated-mdp`** (with auto-provisioning across all projects turned **Off** for least privilege).
 
 ---
 
 ### 2. Project Overview & Feature Dials (`https://dev.azure.com/tofutest/Example%20Platform%20Service`)
 
-Open the **`Example Platform Service`** project (configured via [config/projects/example-service.yaml](file:///home/darrensteven/Projects/AzDo-IaC/config/projects/example-service.yaml)):
+Open the **`Example Platform Service`** project (configured via [config/projects/example-service.yaml](../config/projects/example-service.yaml)):
 
 * **Left Navigation Sidebar**:
   * Notice **Test Plans** is completely hidden from the left menu because `features.testplans: "disabled"` is set in the project YAML, while **Boards**, **Repos**, **Pipelines**, and **Artifacts** are enabled.
